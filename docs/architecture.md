@@ -133,4 +133,4 @@ Remaining: dashboard deployment/login validation, explicit model promotion, oper
 - [Dataflow and model lifecycle](dataflow.md)
 - [Deployment and operations](../README.md)
 - [Compose configuration](../compose.yaml)
-- [Original deployment specification](../../deployment-specification.md)
+
