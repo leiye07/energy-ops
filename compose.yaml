@@ -1,0 +1,115 @@
+name: energy-ops
+x-app: &app
+  image: energy-ops-app:0.1.0
+  build: .
+  restart: unless-stopped
+  init: true
+  environment:
+    DATABASE_HOST: postgres
+    MLFLOW_TRACKING_URI: http://mlflow:5000
+    DATA_DIR: /data
+    OMP_NUM_THREADS: '4'
+    OPENBLAS_NUM_THREADS: '4'
+  secrets: [db_password, api_token]
+  volumes: [./data:/data]
+  networks: [backend]
+  depends_on:
+    postgres: {condition: service_healthy}
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  logging: {driver: json-file, options: {max-size: 10m, max-file: '3'}}
+services:
+  postgres:
+    image: postgres:17.6-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: energyops
+      POSTGRES_DB: energyops
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+      - ./postgres/01-mlflow.sh:/docker-entrypoint-initdb.d/01-mlflow.sh:ro
+    networks: [backend]
+    mem_limit: 2g
+    cpus: 1.5
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U energyops -d energyops']
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    logging: {driver: json-file, options: {max-size: 10m, max-file: '3'}}
+  mlflow:
+    build: ./mlflow
+    image: energy-ops-mlflow:3.17.1
+    restart: unless-stopped
+    init: true
+    secrets: [db_password]
+    volumes: [./mlflow-artifacts:/artifacts]
+    networks: [backend]
+    depends_on:
+      postgres: {condition: service_healthy}
+    mem_limit: 2g
+    cpus: 1
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 20s
+      timeout: 5s
+      retries: 30
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    logging: {driver: json-file, options: {max-size: 10m, max-file: '3'}}
+  runtime:
+    <<: *app
+    ports: ['10.0.2.15:8000:8000']
+    mem_limit: 2g
+    cpus: 1.5
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/readyz')"]
+      interval: 20s
+      timeout: 5s
+      retries: 15
+  model-factory:
+    <<: *app
+    command: [python, -m, app.factory]
+    depends_on:
+      postgres: {condition: service_healthy}
+      mlflow: {condition: service_healthy}
+    secrets: [db_password, api_token, eia_api_key]
+    mem_limit: 6g
+    cpus: 4
+    healthcheck:
+      test: [CMD, python, -m, app.factory, --health]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10m
+  dashboard:
+    build: ./dashboard
+    image: energy-ops-dashboard:0.1.0
+    restart: unless-stopped
+    init: true
+    ports: ['10.0.2.15:8080:8080']
+    secrets: [api_token, dashboard_password_hash]
+    networks: [backend]
+    depends_on:
+      runtime: {condition: service_healthy}
+    mem_limit: 512m
+    cpus: 0.5
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8080/healthz')"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+    logging: {driver: json-file, options: {max-size: 10m, max-file: '3'}}
+secrets:
+  db_password: {file: ./secrets/db_password}
+  api_token: {file: ./secrets/api_token}
+  eia_api_key: {file: ./secrets/eia_api_key}
+  dashboard_password_hash: {file: ./secrets/dashboard_password_hash}
+networks:
+  backend:
+    driver: bridge

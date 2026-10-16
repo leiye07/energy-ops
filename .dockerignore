@@ -1,0 +1,8 @@
+secrets
+.env
+data
+postgres-data
+mlflow-artifacts
+__pycache__
+*.pyc
+.git
