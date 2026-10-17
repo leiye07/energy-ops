@@ -1,23 +1,700 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Energy Operations Forecasting Hub</title>
-<style>*{box-sizing:border-box}body{margin:0;background:#f3f5f1;color:#183436;font:14px system-ui}button{cursor:pointer;font:inherit}header{height:76px;display:flex;align-items:center;justify-content:space-between;background:#102d33;color:#f3faf6;padding:0 5vw}.brand{font-weight:750;letter-spacing:1px;font-size:13px}.brand span{color:#8de1bb}.top{display:flex;align-items:center;gap:20px}.pill{border:1px solid #52736e;padding:6px 10px;border-radius:20px;font-size:11px;color:#a6ebcb}.logout{color:#e1eeea;background:none;border:0}main{max-width:1320px;margin:auto;padding:36px 5vw 60px}.eyebrow{font-size:11px;letter-spacing:1.8px;font-weight:750;color:#55716b}h1{font-size:34px;letter-spacing:-1.2px;margin:10px 0}.intro{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:28px}p{color:#60746f;line-height:1.6}.actions{display:flex;gap:8px;flex-wrap:wrap}button.action{background:#fff;border:1px solid #cdd9d1;border-radius:6px;padding:10px 15px;color:#1e4740}.action.primary{background:#195b4c;color:white;border-color:#195b4c}.tabs{display:flex;gap:25px;border-bottom:1px solid #d5dfd6;margin:30px 0 24px}.tab{border:0;background:none;color:#61736d;padding:0 0 13px}.tab.active{color:#194d3e;border-bottom:3px solid #1a7254;font-weight:700}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card,.panel{background:#fff;border:1px solid #dde5db;border-radius:10px}.card{padding:20px}.label{font-size:12px;color:#657c72}.number{font-size:27px;letter-spacing:-.7px;margin:12px 0 5px;font-weight:650}.detail{font-size:11px;color:#74867a}.panel{padding:25px;margin-top:20px}h2{font-size:17px;margin:0}.sectionhead{display:flex;justify-content:space-between;align-items:center;gap:15px}.badge{font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:6px 9px;border-radius:5px;background:#edf4ed;color:#32654f}.badge.amber{background:#fff1d9;color:#926627}.chart{width:100%;height:310px;display:block;margin-top:24px}.legend{display:flex;gap:20px;font-size:11px;color:#60766b}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:#173e4c}.dot.green{background:#32a878}.note{font-size:12px;background:#f8f6ec;border-left:3px solid #cfad58;padding:13px 16px;color:#72664b;margin-top:22px;line-height:1.6}.two{display:grid;grid-template-columns:1.3fr 1fr;gap:20px}.two .panel{height:fit-content}table{border-collapse:collapse;width:100%;margin-top:18px;font-size:12px;text-align:left}th{font-weight:500;color:#7a8b81;border-bottom:1px solid #e1e7df;padding:10px}td{padding:13px 10px;border-bottom:1px solid #edf0ea;vertical-align:top}.mono{font:11px ui-monospace,monospace;word-break:break-word}.status{color:#297457;font-weight:600}.muted{color:#74857a}.hidden{display:none}.error{color:#a23c31;background:#fff0e8;padding:14px;border-radius:7px;margin-bottom:18px}footer{margin-top:24px;color:#819085;font-size:11px}.empty{padding:25px 0;color:#7b8c80}.metric{font-size:24px;font-weight:650;margin:15px 0 0}.small{font-size:12px}.card .subtext{color:#6b7c70}.tag{display:inline-block;padding:3px 6px;border-radius:4px;background:#eef2ec;color:#55725f;font-size:10px}@media(max-width:800px){.cards{grid-template-columns:repeat(2,1fr)}.intro{align-items:start;flex-direction:column}.two{grid-template-columns:1fr}.brand{font-size:11px}header{padding:0 5vw}.pill{display:none}.chart{height:240px}.panel{padding:17px}td,th{padding:9px 5px}.number{font-size:23px}}@media(max-width:450px){.cards{grid-template-columns:1fr 1fr;gap:8px}.card{padding:14px}h1{font-size:28px}.legend{gap:8px;font-size:10px}.sectionhead{align-items:start;flex-direction:column}}</style>
-<header><div class="brand">ENERGY <span>/</span> OPERATIONS</div><div class="top"><span class="pill">PRIVATE WORKSPACE · LOCAL VM</span><form action="/logout" method="post"><button class="logout">Sign out ↗</button></form></div></header>
-<main><div class="intro"><div><div class="eyebrow">FORECASTING HUB</div><h1>Demand, with context.</h1><p id="subtitle">Loading your operating picture…</p></div><div class="actions"><button class="action" onclick="queue('ingest')">Collect latest data</button><button class="action primary" onclick="queue('train')">Train candidate</button></div></div><div id="error" class="error hidden" role="alert"></div>
-<nav class="tabs"><button class="tab active" onclick="tab('overview',this)">Overview</button><button class="tab" onclick="tab('models',this)">Model review</button><button class="tab" onclick="tab('jobs',this)">Jobs & audit</button></nav>
-<section id="overview"><div class="cards"><div class="card"><div class="label">Balancing authority</div><div class="number" id="authority">—</div><div class="detail">EIA hourly demand</div></div><div class="card"><div class="label">History retained</div><div class="number" id="hours">—</div><div class="detail">Validated hourly observations</div></div><div class="card"><div class="label">Pilot coverage</div><div class="number" id="coverage">—</div><div class="detail">Common 90-day selection window</div></div><div class="card"><div class="label">Serving model</div><div class="number" id="serving">—</div><div class="detail" id="servingnote">Human approval required</div></div></div>
-<div class="panel"><div class="sectionhead"><div><h2>Hourly demand outlook</h2><p class="small" id="issue">48-hour seasonal reference</p></div><span class="badge amber">REFERENCE · REVIEW ONLY</span></div><svg id="chart" class="chart" role="img" aria-label="Hourly demand history and 48-hour reference forecast with residual intervals" viewBox="0 0 1000 300"></svg><div class="legend"><span><i class="dot"></i>Observed demand</span><span><i class="dot green"></i>Weekly reference</span><span>Shading: nominal 90% residual interval</span></div><div class="note">This reference forecast is for review. Historical inputs can contain later revisions, and interval coverage has not been validated live. No tree candidate is promoted automatically.</div></div>
-<div class="two"><div class="panel"><div class="sectionhead"><h2>Latest collection</h2><span class="badge" id="collectionstate">—</span></div><p id="collection">—</p><div class="small muted">Hourly collection · 7-day revision lookback · weekly candidate training</div></div><div class="panel"><h2>Candidate holdout MAE</h2><div class="metric" id="mae">—</div><p class="small" id="comparison">Awaiting evaluated candidate</p><span class="tag">Retrospective revised-data evaluation</span></div></div></section>
-<section id="models" class="hidden"><div class="panel"><div class="sectionhead"><h2>Model registry</h2><span class="badge amber">HUMAN REVIEW</span></div><p>Compare evaluated versions and inspect provenance. Tree promotion remains blocked until point-in-time and live validation are established.</p><div style="overflow:auto"><table><thead><tr><th>Model / version</th><th>Holdout MAE</th><th>Status</th><th>Action</th></tr></thead><tbody id="modelrows"></tbody></table></div><p class="small" id="provenance"></p></div></section>
-<section id="jobs" class="hidden"><div class="panel"><h2>Pipeline jobs</h2><p class="small">One worker owns the execution lock. Collection and training run inside this VM.</p><table><thead><tr><th>Started</th><th>Job</th><th>Status</th></tr></thead><tbody id="jobrows"></tbody></table></div><div class="panel"><h2>Audit history</h2><table><thead><tr><th>Time</th><th>Action</th><th>Actor</th></tr></thead><tbody id="auditrows"></tbody></table></div></section>
-<footer id="updated">Connecting to Runtime…</footer></main>
-<script>
-const $=id=>document.getElementById(id), fmt=n=>new Intl.NumberFormat(undefined,{maximumFractionDigits:0}).format(n), dt=t=>t?new Date(t).toLocaleString():'—';
-const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function api(path,body){const r=await fetch('/api'+path,{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined});if(r.status===401){location.href='/login';throw Error('Sign in required')}const d=await r.json();if(!r.ok)throw Error(d.detail||'Request failed');return d}
-function error(e){$('error').textContent=e.message;$('error').classList.remove('hidden')}
-function tab(id,button){for(const s of ['overview','models','jobs'])$(s).classList.toggle('hidden',s!==id);document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));button.classList.add('active')}
-async function queue(kind){try{const j=await api('/v1/jobs',{kind});$('error').classList.add('hidden');alert('Job queued. You can follow its progress under Jobs & audit.');load()}catch(e){error(e)}}
-async function promote(id){if(!confirm('Approve this seasonal baseline for experimental serving? Historical backtests use revised data, and live forecast quality is unverified.'))return;try{await api('/v1/models/'+encodeURIComponent(id)+'/promote',{acknowledge_revised_history:true});load()}catch(e){error(e)}}
-function draw(observations,forecast){const obs=observations.slice(0,72).reverse().map(o=>({t:+new Date(o.period),v:o.value})),pred=forecast.points.map(p=>({t:+new Date(p.period),v:p.demand_mw,lo:p.lower_90,hi:p.upper_90}));if(!obs.length||!pred.length)return;const all=[...obs,...pred],t0=Math.min(...all.map(p=>p.t)),t1=Math.max(...all.map(p=>p.t)),low=Math.max(0,Math.min(...all.map(p=>p.lo??p.v))*.9),high=Math.max(...all.map(p=>p.hi??p.v))*1.08,x=t=>55+(t-t0)/(t1-t0)*920,y=v=>255-(v-low)/(high-low)*230;let html='';for(let i=0;i<5;i++){const v=low+(high-low)*i/4,yy=y(v);html+=`<line x1="55" x2="975" y1="${yy}" y2="${yy}" stroke="#e9eee6"/><text x="46" y="${yy+4}" text-anchor="end" fill="#829183" font-size="10">${fmt(v)}</text>`}const line=ps=>ps.map((p,i)=>(i?'L':'M')+x(p.t).toFixed(1)+','+y(p.v).toFixed(1)).join(' '),area=pred.map((p,i)=>(i?'L':'M')+x(p.t)+','+y(p.hi)).join(' ')+pred.slice().reverse().map(p=>' L'+x(p.t)+','+y(p.lo)).join(' ')+' Z';html+=`<path d="${area}" fill="#a4dcc0" opacity=".35"/><path d="${line(obs)}" fill="none" stroke="#244d5a" stroke-width="2.5"/><path d="${line(pred)}" fill="none" stroke="#2c9d70" stroke-width="2.5"/>`;for(let i=0;i<5;i++){const t=t0+(t1-t0)*i/4;html+=`<text x="${x(t)}" y="283" text-anchor="middle" fill="#829183" font-size="10">${escapeHtml(new Date(t).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric'}))}</text>`}html+='<text x="55" y="12" fill="#829183" font-size="10">MW equivalent</text>';$('chart').innerHTML=html}
-async function load(){try{const [s,models,obs,audit]=await Promise.all([api('/v1/status'),api('/v1/models'),api('/v1/observations'),api('/v1/audit')]);$('authority').textContent=s.authority||'Pending';const series=s.observations.find(o=>o.authority===s.authority);$('hours').textContent=series?fmt(series.hours):'—';$('coverage').textContent=s.last_ingest?((s.last_ingest.coverage.coverage*100).toFixed(1)+'%'):'—';$('serving').textContent=s.champion?'Approved':'Not approved';$('servingnote').textContent=s.champion||'Reference preview available';$('subtitle').textContent=s.authority?`${s.authority} · Hourly demand · 48-hour forecast horizon`:'Waiting for the first collection';$('collectionstate').textContent=s.last_ingest?'COLLECTED':'PENDING';$('collection').textContent=s.last_ingest?`Last collected ${dt(s.last_ingest.at)}. Latest observation: ${dt(series?.last_period)}.`:'Collection has not completed yet.';const tree=models.find(m=>m.kind==='hist-gradient-boosting');if(tree){$('mae').textContent=fmt(tree.metadata.holdout.candidate.mae)+' MW';$('comparison').textContent=(100*tree.metadata.relative_mae_improvement).toFixed(1)+'% lower MAE than the weekly baseline on the held-out retrospective window.';$('provenance').innerHTML='Training dataset SHA256<br><span class="mono">'+escapeHtml(tree.dataset_sha)+'</span>'}$('modelrows').innerHTML=models.map(m=>`<tr><td>${m.kind==='seasonal-week'?'Seasonal weekly baseline':'Gradient-boosted tree'}<br><span class="mono muted">${escapeHtml(m.id)}</span></td><td>${fmt(m.metadata.holdout[m.kind==='seasonal-week'?'baseline':'candidate'].mae)} MW</td><td>${s.champion===m.id?'Approved':m.kind==='seasonal-week'?'Reference only':'Operational gate blocked'}</td><td>${m.kind==='seasonal-week'&&s.champion!==m.id?`<button class="action" onclick="promote('${escapeHtml(m.id)}')">Review & approve</button>`:'—'}</td></tr>`).join('')||'<tr><td colspan="4">No evaluated models yet</td></tr>';$('jobrows').innerHTML=s.jobs.map(j=>`<tr><td>${dt(j.started_at||j.created_at)}</td><td>${escapeHtml(j.kind)}<br><span class="mono muted">${escapeHtml(j.id)}</span></td><td class="status">${escapeHtml(j.status)}</td></tr>`).join('');$('auditrows').innerHTML=audit.slice(0,25).map(a=>`<tr><td>${dt(a.occurred_at)}</td><td>${escapeHtml(a.action)}</td><td>${escapeHtml(a.actor)}</td></tr>`).join('');try{const fc=await api('/v1/forecasts/reference');draw(obs,fc);$('issue').textContent='Issued '+dt(fc.issue_time)+' · latest observation '+dt(fc.latest_observation)}catch(e){$('issue').textContent=e.message}$('updated').textContent='Updated '+new Date().toLocaleTimeString()+' · all services run inside your Ubuntu VM';$('error').classList.add('hidden')}catch(e){error(e)}}
-load();setInterval(load,60000);
-</script></html>
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>Energy Operations Forecasting Hub</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #f3f5f1;
+      color: #183436;
+      font: 14px system-ui;
+    }
+    button {
+      cursor: pointer;
+      font: inherit;
+    }
+    header {
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #102d33;
+      color: #f3faf6;
+      padding: 0 5vw;
+    }
+    .brand {
+      font-weight: 750;
+      letter-spacing: 1px;
+      font-size: 13px;
+    }
+    .brand span {
+      color: #8de1bb;
+    }
+    .top {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .pill {
+      border: 1px solid #52736e;
+      padding: 6px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      color: #a6ebcb;
+    }
+    .logout {
+      color: #e1eeea;
+      background: none;
+      border: 0;
+    }
+    main {
+      max-width: 1320px;
+      margin: auto;
+      padding: 36px 5vw 60px;
+    }
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 1.8px;
+      font-weight: 750;
+      color: #55716b;
+    }
+    h1 {
+      font-size: 34px;
+      letter-spacing: -1.2px;
+      margin: 10px 0;
+    }
+    .intro {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+    p {
+      color: #60746f;
+      line-height: 1.6;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    button.action {
+      background: #fff;
+      border: 1px solid #cdd9d1;
+      border-radius: 6px;
+      padding: 10px 15px;
+      color: #1e4740;
+    }
+    .action.primary {
+      background: #195b4c;
+      color: white;
+      border-color: #195b4c;
+    }
+    .tabs {
+      display: flex;
+      gap: 25px;
+      border-bottom: 1px solid #d5dfd6;
+      margin: 30px 0 24px;
+    }
+    .tab {
+      border: 0;
+      background: none;
+      color: #61736d;
+      padding: 0 0 13px;
+    }
+    .tab.active {
+      color: #194d3e;
+      border-bottom: 3px solid #1a7254;
+      font-weight: 700;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .card,
+    .panel {
+      background: #fff;
+      border: 1px solid #dde5db;
+      border-radius: 10px;
+    }
+    .card {
+      padding: 20px;
+    }
+    .label {
+      font-size: 12px;
+      color: #657c72;
+    }
+    .number {
+      font-size: 27px;
+      letter-spacing: -0.7px;
+      margin: 12px 0 5px;
+      font-weight: 650;
+    }
+    .detail {
+      font-size: 11px;
+      color: #74867a;
+    }
+    .panel {
+      padding: 25px;
+      margin-top: 20px;
+    }
+    h2 {
+      font-size: 17px;
+      margin: 0;
+    }
+    .sectionhead {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+    .badge {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 6px 9px;
+      border-radius: 5px;
+      background: #edf4ed;
+      color: #32654f;
+    }
+    .badge.amber {
+      background: #fff1d9;
+      color: #926627;
+    }
+    .chart {
+      width: 100%;
+      height: 310px;
+      display: block;
+      margin-top: 24px;
+    }
+    .legend {
+      display: flex;
+      gap: 20px;
+      font-size: 11px;
+      color: #60766b;
+    }
+    .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      background: #173e4c;
+    }
+    .dot.green {
+      background: #32a878;
+    }
+    .note {
+      font-size: 12px;
+      background: #f8f6ec;
+      border-left: 3px solid #cfad58;
+      padding: 13px 16px;
+      color: #72664b;
+      margin-top: 22px;
+      line-height: 1.6;
+    }
+    .two {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 20px;
+    }
+    .two .panel {
+      height: fit-content;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 18px;
+      font-size: 12px;
+      text-align: left;
+    }
+    th {
+      font-weight: 500;
+      color: #7a8b81;
+      border-bottom: 1px solid #e1e7df;
+      padding: 10px;
+    }
+    td {
+      padding: 13px 10px;
+      border-bottom: 1px solid #edf0ea;
+      vertical-align: top;
+    }
+    .mono {
+      font:
+        11px ui-monospace,
+        monospace;
+      word-break: break-word;
+    }
+    .status {
+      color: #297457;
+      font-weight: 600;
+    }
+    .muted {
+      color: #74857a;
+    }
+    .hidden {
+      display: none;
+    }
+    .error {
+      color: #a23c31;
+      background: #fff0e8;
+      padding: 14px;
+      border-radius: 7px;
+      margin-bottom: 18px;
+    }
+    footer {
+      margin-top: 24px;
+      color: #819085;
+      font-size: 11px;
+    }
+    .empty {
+      padding: 25px 0;
+      color: #7b8c80;
+    }
+    .metric {
+      font-size: 24px;
+      font-weight: 650;
+      margin: 15px 0 0;
+    }
+    .small {
+      font-size: 12px;
+    }
+    .card .subtext {
+      color: #6b7c70;
+    }
+    .tag {
+      display: inline-block;
+      padding: 3px 6px;
+      border-radius: 4px;
+      background: #eef2ec;
+      color: #55725f;
+      font-size: 10px;
+    }
+    @media (max-width: 800px) {
+      .cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .intro {
+        align-items: start;
+        flex-direction: column;
+      }
+      .two {
+        grid-template-columns: 1fr;
+      }
+      .brand {
+        font-size: 11px;
+      }
+      header {
+        padding: 0 5vw;
+      }
+      .pill {
+        display: none;
+      }
+      .chart {
+        height: 240px;
+      }
+      .panel {
+        padding: 17px;
+      }
+      td,
+      th {
+        padding: 9px 5px;
+      }
+      .number {
+        font-size: 23px;
+      }
+    }
+    @media (max-width: 450px) {
+      .cards {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .card {
+        padding: 14px;
+      }
+      h1 {
+        font-size: 28px;
+      }
+      .legend {
+        gap: 8px;
+        font-size: 10px;
+      }
+      .sectionhead {
+        align-items: start;
+        flex-direction: column;
+      }
+    }
+  </style>
+  <header>
+    <div class="brand">ENERGY <span>/</span> OPERATIONS</div>
+    <div class="top">
+      <span class="pill">PRIVATE WORKSPACE · LOCAL VM</span>
+      <form action="/logout" method="post">
+        <button class="logout">Sign out ↗</button>
+      </form>
+    </div>
+  </header>
+  <main>
+    <div class="intro">
+      <div>
+        <div class="eyebrow">FORECASTING HUB</div>
+        <h1>Demand, with context.</h1>
+        <p id="subtitle">Loading your operating picture…</p>
+      </div>
+      <div class="actions">
+        <button class="action" onclick="queue('ingest')">
+          Collect latest data</button
+        ><button class="action primary" onclick="queue('train')">
+          Train candidate
+        </button>
+      </div>
+    </div>
+    <div id="error" class="error hidden" role="alert"></div>
+    <nav class="tabs">
+      <button class="tab active" onclick="tab('overview', this)">
+        Overview</button
+      ><button class="tab" onclick="tab('models', this)">Model review</button
+      ><button class="tab" onclick="tab('jobs', this)">Jobs & audit</button>
+    </nav>
+    <section id="overview">
+      <div class="cards">
+        <div class="card">
+          <div class="label">Balancing authority</div>
+          <div class="number" id="authority">—</div>
+          <div class="detail">EIA hourly demand</div>
+        </div>
+        <div class="card">
+          <div class="label">History retained</div>
+          <div class="number" id="hours">—</div>
+          <div class="detail">Validated hourly observations</div>
+        </div>
+        <div class="card">
+          <div class="label">Pilot coverage</div>
+          <div class="number" id="coverage">—</div>
+          <div class="detail">Common 90-day selection window</div>
+        </div>
+        <div class="card">
+          <div class="label">Serving model</div>
+          <div class="number" id="serving">—</div>
+          <div class="detail" id="servingnote">Human approval required</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="sectionhead">
+          <div>
+            <h2>Hourly demand outlook</h2>
+            <p class="small" id="issue">48-hour seasonal reference</p>
+          </div>
+          <span class="badge amber">REFERENCE · REVIEW ONLY</span>
+        </div>
+        <svg
+          id="chart"
+          class="chart"
+          role="img"
+          aria-label="Hourly demand history and 48-hour reference forecast with residual intervals"
+          viewBox="0 0 1000 300"
+        ></svg>
+        <div class="legend">
+          <span><i class="dot"></i>Observed demand</span
+          ><span><i class="dot green"></i>Weekly reference</span
+          ><span>Shading: nominal 90% residual interval</span>
+        </div>
+        <div class="note">
+          This reference forecast is for review. Historical inputs can contain
+          later revisions, and interval coverage has not been validated live. No
+          tree candidate is promoted automatically.
+        </div>
+      </div>
+      <div class="two">
+        <div class="panel">
+          <div class="sectionhead">
+            <h2>Latest collection</h2>
+            <span class="badge" id="collectionstate">—</span>
+          </div>
+          <p id="collection">—</p>
+          <div class="small muted">
+            Hourly collection · 7-day revision lookback · weekly candidate
+            training
+          </div>
+        </div>
+        <div class="panel">
+          <h2>Candidate holdout MAE</h2>
+          <div class="metric" id="mae">—</div>
+          <p class="small" id="comparison">Awaiting evaluated candidate</p>
+          <span class="tag">Retrospective revised-data evaluation</span>
+        </div>
+      </div>
+    </section>
+    <section id="models" class="hidden">
+      <div class="panel">
+        <div class="sectionhead">
+          <h2>Model registry</h2>
+          <span class="badge amber">HUMAN REVIEW</span>
+        </div>
+        <p>
+          Compare evaluated versions and inspect provenance. Tree promotion
+          remains blocked until point-in-time and live validation are
+          established.
+        </p>
+        <div style="overflow: auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Model / version</th>
+                <th>Holdout MAE</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="modelrows"></tbody>
+          </table>
+        </div>
+        <p class="small" id="provenance"></p>
+      </div>
+    </section>
+    <section id="jobs" class="hidden">
+      <div class="panel">
+        <h2>Pipeline jobs</h2>
+        <p class="small">
+          One worker owns the execution lock. Collection and training run inside
+          this VM.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Started</th>
+              <th>Job</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="jobrows"></tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h2>Audit history</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Action</th>
+              <th>Actor</th>
+            </tr>
+          </thead>
+          <tbody id="auditrows"></tbody>
+        </table>
+      </div>
+    </section>
+    <footer id="updated">Connecting to Runtime…</footer>
+  </main>
+  <script>
+    const $ = (id) => document.getElementById(id),
+      fmt = (n) =>
+        new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(
+          n,
+        ),
+      dt = (t) => (t ? new Date(t).toLocaleString() : "—");
+    const escapeHtml = (s) =>
+      String(s ?? "").replace(
+        /[&<>"']/g,
+        (c) =>
+          ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+          })[c],
+      );
+    async function api(path, body) {
+      const r = await fetch("/api" + path, {
+        method: body ? "POST" : "GET",
+        headers: body ? { "Content-Type": "application/json" } : {},
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      if (r.status === 401) {
+        location.href = "/login";
+        throw Error("Sign in required");
+      }
+      const d = await r.json();
+      if (!r.ok) throw Error(d.detail || "Request failed");
+      return d;
+    }
+    function error(e) {
+      $("error").textContent = e.message;
+      $("error").classList.remove("hidden");
+    }
+    function tab(id, button) {
+      for (const s of ["overview", "models", "jobs"])
+        $(s).classList.toggle("hidden", s !== id);
+      document
+        .querySelectorAll(".tab")
+        .forEach((b) => b.classList.remove("active"));
+      button.classList.add("active");
+    }
+    async function queue(kind) {
+      try {
+        const j = await api("/v1/jobs", { kind });
+        $("error").classList.add("hidden");
+        alert("Job queued. You can follow its progress under Jobs & audit.");
+        load();
+      } catch (e) {
+        error(e);
+      }
+    }
+    async function promote(id) {
+      if (
+        !confirm(
+          "Approve this seasonal baseline for experimental serving? Historical backtests use revised data, and live forecast quality is unverified.",
+        )
+      )
+        return;
+      try {
+        await api("/v1/models/" + encodeURIComponent(id) + "/promote", {
+          acknowledge_revised_history: true,
+        });
+        load();
+      } catch (e) {
+        error(e);
+      }
+    }
+    function draw(observations, forecast) {
+      const obs = observations
+          .slice(0, 72)
+          .reverse()
+          .map((o) => ({ t: +new Date(o.period), v: o.value })),
+        pred = forecast.points.map((p) => ({
+          t: +new Date(p.period),
+          v: p.demand_mw,
+          lo: p.lower_90,
+          hi: p.upper_90,
+        }));
+      if (!obs.length || !pred.length) return;
+      const all = [...obs, ...pred],
+        t0 = Math.min(...all.map((p) => p.t)),
+        t1 = Math.max(...all.map((p) => p.t)),
+        low = Math.max(0, Math.min(...all.map((p) => p.lo ?? p.v)) * 0.9),
+        high = Math.max(...all.map((p) => p.hi ?? p.v)) * 1.08,
+        x = (t) => 55 + ((t - t0) / (t1 - t0)) * 920,
+        y = (v) => 255 - ((v - low) / (high - low)) * 230;
+      let html = "";
+      for (let i = 0; i < 5; i++) {
+        const v = low + ((high - low) * i) / 4,
+          yy = y(v);
+        html += `<line x1="55" x2="975" y1="${yy}" y2="${yy}" stroke="#e9eee6"/><text x="46" y="${yy + 4}" text-anchor="end" fill="#829183" font-size="10">${fmt(v)}</text>`;
+      }
+      const line = (ps) =>
+          ps
+            .map(
+              (p, i) =>
+                (i ? "L" : "M") + x(p.t).toFixed(1) + "," + y(p.v).toFixed(1),
+            )
+            .join(" "),
+        area =
+          pred
+            .map((p, i) => (i ? "L" : "M") + x(p.t) + "," + y(p.hi))
+            .join(" ") +
+          pred
+            .slice()
+            .reverse()
+            .map((p) => " L" + x(p.t) + "," + y(p.lo))
+            .join(" ") +
+          " Z";
+      html += `<path d="${area}" fill="#a4dcc0" opacity=".35"/><path d="${line(obs)}" fill="none" stroke="#244d5a" stroke-width="2.5"/><path d="${line(pred)}" fill="none" stroke="#2c9d70" stroke-width="2.5"/>`;
+      for (let i = 0; i < 5; i++) {
+        const t = t0 + ((t1 - t0) * i) / 4;
+        html += `<text x="${x(t)}" y="283" text-anchor="middle" fill="#829183" font-size="10">${escapeHtml(new Date(t).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric" }))}</text>`;
+      }
+      html +=
+        '<text x="55" y="12" fill="#829183" font-size="10">MW equivalent</text>';
+      $("chart").innerHTML = html;
+    }
+    async function load() {
+      try {
+        const [s, models, obs, audit] = await Promise.all([
+          api("/v1/status"),
+          api("/v1/models"),
+          api("/v1/observations"),
+          api("/v1/audit"),
+        ]);
+        $("authority").textContent = s.authority || "Pending";
+        const series = s.observations.find((o) => o.authority === s.authority);
+        $("hours").textContent = series ? fmt(series.hours) : "—";
+        $("coverage").textContent = s.last_ingest
+          ? (s.last_ingest.coverage.coverage * 100).toFixed(1) + "%"
+          : "—";
+        $("serving").textContent = s.champion ? "Approved" : "Not approved";
+        $("servingnote").textContent =
+          s.champion || "Reference preview available";
+        $("subtitle").textContent = s.authority
+          ? `${s.authority} · Hourly demand · 48-hour forecast horizon`
+          : "Waiting for the first collection";
+        $("collectionstate").textContent = s.last_ingest
+          ? "COLLECTED"
+          : "PENDING";
+        $("collection").textContent = s.last_ingest
+          ? `Last collected ${dt(s.last_ingest.at)}. Latest observation: ${dt(series?.last_period)}.`
+          : "Collection has not completed yet.";
+        const tree = models.find((m) => m.kind === "hist-gradient-boosting");
+        if (tree) {
+          $("mae").textContent =
+            fmt(tree.metadata.holdout.candidate.mae) + " MW";
+          $("comparison").textContent =
+            (100 * tree.metadata.relative_mae_improvement).toFixed(1) +
+            "% lower MAE than the weekly baseline on the held-out retrospective window.";
+          $("provenance").innerHTML =
+            'Training dataset SHA256<br><span class="mono">' +
+            escapeHtml(tree.dataset_sha) +
+            "</span>";
+        }
+        $("modelrows").innerHTML =
+          models
+            .map(
+              (m) =>
+                `<tr><td>${m.kind === "seasonal-week" ? "Seasonal weekly baseline" : "Gradient-boosted tree"}<br><span class="mono muted">${escapeHtml(m.id)}</span></td><td>${fmt(m.metadata.holdout[m.kind === "seasonal-week" ? "baseline" : "candidate"].mae)} MW</td><td>${s.champion === m.id ? "Approved" : m.kind === "seasonal-week" ? "Reference only" : "Operational gate blocked"}</td><td>${m.kind === "seasonal-week" && s.champion !== m.id ? `<button class="action" onclick="promote('${escapeHtml(m.id)}')">Review & approve</button>` : "—"}</td></tr>`,
+            )
+            .join("") ||
+          '<tr><td colspan="4">No evaluated models yet</td></tr>';
+        $("jobrows").innerHTML = s.jobs
+          .map(
+            (j) =>
+              `<tr><td>${dt(j.started_at || j.created_at)}</td><td>${escapeHtml(j.kind)}<br><span class="mono muted">${escapeHtml(j.id)}</span></td><td class="status">${escapeHtml(j.status)}</td></tr>`,
+          )
+          .join("");
+        $("auditrows").innerHTML = audit
+          .slice(0, 25)
+          .map(
+            (a) =>
+              `<tr><td>${dt(a.occurred_at)}</td><td>${escapeHtml(a.action)}</td><td>${escapeHtml(a.actor)}</td></tr>`,
+          )
+          .join("");
+        try {
+          const fc = await api("/v1/forecasts/reference");
+          draw(obs, fc);
+          $("issue").textContent =
+            "Issued " +
+            dt(fc.issue_time) +
+            " · latest observation " +
+            dt(fc.latest_observation);
+        } catch (e) {
+          $("issue").textContent = e.message;
+        }
+        $("updated").textContent =
+          "Updated " +
+          new Date().toLocaleTimeString() +
+          " · all services run inside your Ubuntu VM";
+        $("error").classList.add("hidden");
+      } catch (e) {
+        error(e);
+      }
+    }
+    load();
+    setInterval(load, 60000);
+  </script>
+</html>
